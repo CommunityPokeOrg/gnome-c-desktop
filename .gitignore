@@ -1,0 +1,11 @@
+build/
+build-*/
+*.o
+*.a
+*.so
+*.pyc
+__pycache__/
+.mesonpy-*
+meson-logs/
+meson-info/
+subprojects/packagecache/

@@ -1,0 +1,3 @@
+option('x11',     type : 'feature', value : 'auto', description : 'Build the X11/XCB backend')
+option('wayland', type : 'feature', value : 'auto', description : 'Build the Wayland backend')
+option('tests',   type : 'boolean', value : true,   description : 'Build the test suite')

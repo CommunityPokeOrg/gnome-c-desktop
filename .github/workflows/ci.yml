@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential meson ninja-build pkg-config \
+            libglib2.0-dev libxcb1-dev libcairo2-dev \
+            libwayland-dev wayland-protocols \
+            xvfb dbus-x11
+
+      - name: Configure
+        run: meson setup build
+
+      - name: Build
+        run: ninja -C build
+
+      - name: Test
+        run: meson test -C build --print-errorlogs
