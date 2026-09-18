@@ -281,6 +281,7 @@ static void local_added(GcdWindowModel *m, const GcdWindow *w,
   GcdSyncMsg msg;
   (void)m;
   if (g_strcmp0(w->origin, "local") != 0) return;
+  gcd_window_model_upsert(n->merged, w); /* keep the merged view complete */
   gcd_sync_msg_init(&msg);
   msg.type = GCD_SYNC_MSG_UPSERT;
   msg.window = (GcdWindow *)w; /* encode is read-only; not owned */
@@ -298,6 +299,7 @@ static void local_removed(GcdWindowModel *m, const gchar *id, gpointer ud)
   GcdSyncNode *n = ud;
   GcdSyncMsg msg;
   (void)m;
+  gcd_window_model_remove(n->merged, id);
   gcd_sync_msg_init(&msg);
   msg.type = GCD_SYNC_MSG_REMOVE;
   msg.id = (gchar *)id; /* borrowed */
