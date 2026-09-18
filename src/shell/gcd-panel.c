@@ -6,6 +6,9 @@
  * (origin != "local") render dimmed with their origin in the label so a
  * user can see which display owns them before clicking.
  *
+ * Task buttons: left-click activates, middle-click closes, right-click
+ * toggles minimize/restore. Urgent windows get an amber button.
+ *
  * SPDX-License-Identifier: MIT
  */
 
@@ -114,7 +117,9 @@ static void paint(GcdPanel *p)
     gboolean focused = w->flags & GCD_WINDOW_FOCUSED;
     gboolean remote  = g_strcmp0(w->origin, "local") != 0;
 
-    if (focused)
+    if (w->flags & GCD_WINDOW_URGENT)
+      cairo_set_source_rgb(cr, 0.72, 0.50, 0.10);
+    else if (focused)
       cairo_set_source_rgb(cr, 0.24, 0.44, 0.68);
     else
       cairo_set_source_rgb(cr, 0.20, 0.21, 0.23);
@@ -181,9 +186,18 @@ static void on_pointer(GcdSurface *s, gdouble x, gdouble y, guint button,
     HotRegion *r = g_ptr_array_index(p->hot, i);
     if (p->last_x >= r->x && p->last_x < r->x + r->w &&
         p->last_y >= r->y && p->last_y < r->y + r->h) {
-      if (r->kind == HOT_WINDOW && r->id && p->op_cb)
-        p->op_cb(r->id, GCD_OP_ACTIVATE, 0, p->op_ud);
-      else if (r->kind == HOT_ACTIVITIES)
+      if (r->kind == HOT_WINDOW && r->id && p->op_cb) {
+        if (button == 1) {
+          p->op_cb(r->id, GCD_OP_ACTIVATE, 0, p->op_ud);
+        } else if (button == 2) {
+          p->op_cb(r->id, GCD_OP_CLOSE, 0, p->op_ud);
+        } else if (button == 3) {
+          const GcdWindow *w = gcd_window_model_find(p->model, r->id);
+          GcdWindowOp op = (w && (w->flags & GCD_WINDOW_MINIMIZED))
+                           ? GCD_OP_UNMINIMIZE : GCD_OP_MINIMIZE;
+          p->op_cb(r->id, op, 0, p->op_ud);
+        }
+      } else if (r->kind == HOT_ACTIVITIES)
         g_message("panel: Activities clicked (overview not implemented)");
       return;
     }
